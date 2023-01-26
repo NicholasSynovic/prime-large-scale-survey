@@ -1,7 +1,9 @@
 import requests
 from requests import Response
 
-url = 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods'
+url = ['https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods', 
+    'https://www.oreilly.com/library/view/python-in-a/0596001886/ch04s09.html', 
+    'https://www.google.com/docs/abou'] #Last Url should give you a 404 error
 
 r: Response = requests.get(url)
 print(f"""
