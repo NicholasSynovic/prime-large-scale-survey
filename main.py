@@ -3,7 +3,7 @@
 from itertools import islice
 
 #index = 0
-with open('url.txt','r') as file:
+with open('mergedurls.txt','r') as file:
     while True:
         lines = list(islice(file, 1000))
         for line in lines:
