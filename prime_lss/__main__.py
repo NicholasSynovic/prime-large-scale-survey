@@ -1,6 +1,4 @@
 import concurrent.futures
-from io import TextIOWrapper
-from itertools import islice
 from time import sleep
 from typing import List
 
