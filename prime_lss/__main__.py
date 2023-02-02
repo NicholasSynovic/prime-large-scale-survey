@@ -2,86 +2,55 @@ import concurrent.futures
 from io import TextIOWrapper
 from itertools import islice
 from time import sleep
+from typing import List
 
 import requests
+from progress.spinner import Spinner
 from requests import Response
 
 from prime_lss.primeLSS import PrimeLSSElement
 
-# def url_stream():
-#     index = 0
-#     with open('mergedurls.txt','r') as file:
-#         while True:
-#             lines = list(islice(file, 1000))
-#             for line in lines:
-#                 index += 1
-#                 #print(line)
-#                 print(f"Total count is {index}")
-#             if not lines:
-#                 break
+jsonObjects: List[dict] = []
 
 
-# def get_url():
-#         r = requests.get(url_stream())
-#         print(r)
+def getURL(url: str) -> Response:
+    while True:
+        resp: Response = requests.get(url=url, allow_redirects=False)
 
-# url_stream()
+        if resp.status_code == 429:
+            sleep(secs=60)
+        else:
+            break
 
-
-# def main()  ->  None:
-#     stream: TextIOWrapper = open(file="url.txt", mode="r", buffering=1)
-
-#     streamIterable = iter(stream.readline, '')
-
-#     line: str
-#     for line in streamIterable:
-#         return(line.strip())
-
-# if __name__ == "__main__":
-#     main()
-
-# def main() -> None:
-#     with open("largeurls.txt", "r") as stream:
-#         lines = stream.readlines()
+    return resp
 
 
-#     for line in lines:
-#         url = line.strip()
-#         r = requests.get(url)
-#         print(r, url)
+def buildElement(resp: Response) -> PrimeLSSElement:
+    action: int
 
-# if __name__ == "__main__":
-#     main()
-
-
-jsonObjects: list[dict] = []
-
-
-def fetch_url(url: str) -> None:
-    r: Response = requests.get(url, allow_redirects=False)
-
-    if r.status_code == 429:
-        sleep(secs=60)
-        fetch_url(url)
-        return None
-
-    newURL: str | None = r.headers.get("Location")
+    originalURL: str = resp.url
+    elementID: int = hash(originalURL)
+    originalStatusCode: int = resp.status_code
+    newURL: str | None = resp.headers.get("Location")
 
     if newURL == None:
-        newURL = url
+        newURL = originalURL
 
-    p: PrimeLSSElement = PrimeLSSElement(
-        id=hash(url),
-        original_url=url,
+    match originalStatusCode:
+        case 200:
+            action = 0
+        case 404:
+            action = -1
+        case _:
+            action = 1
+
+    return PrimeLSSElement(
+        id=elementID,
+        original_url=originalURL,
         new_url=newURL,
-        original_url_status_code=str(r.status_code),
-        action=0,
+        original_url_status_code=originalStatusCode,
+        action=action,
     )
-
-    jsonObjects.append(p.to_dict())
-
-    # print(r.status_code)
-    print(p.to_dict())
 
 
 def main() -> None:
