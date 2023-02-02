@@ -1,13 +1,14 @@
-from concurrent.futures import Future, ThreadPoolExecutor
+import subprocess
 from io import TextIOWrapper
 from json import dump
 from pathlib import PurePath
 from time import sleep
 from typing import List
+from urllib.parse import ParseResult, urlparse
 
 import requests
 from primeLSS import PrimeLSSElement
-from progress.spinner import Spinner
+from progress.spinner import MoonSpinner as Spinner
 from requests import Response
 
 jsonObjects: List[dict] = []
@@ -25,7 +26,18 @@ def getURL(url: str) -> Response:
     return resp
 
 
-def buildElement(resp: Response) -> PrimeLSSElement:
+def gitPing(url: str) -> int:
+    parsedURL: ParseResult = urlparse(url)
+    gitURL: str = f"git@github.com:{parsedURL.path.strip('/')}"
+
+    command: List[str] = ["git", "ls-remote", "--exit-code", "-h", gitURL]
+
+    return subprocess.run(
+        args=command, shell=False, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL
+    ).returncode
+
+
+def buildElement(resp: Response, gitPingStatus: int) -> PrimeLSSElement:
     action: int
 
     originalURL: str = resp.url
@@ -41,8 +53,10 @@ def buildElement(resp: Response) -> PrimeLSSElement:
             action = 0
         case 404:
             action = -1
-        case _:
+        case 301:
             action = 1
+        case _:
+            action = 2
 
     return PrimeLSSElement(
         id=elementID,
@@ -50,35 +64,25 @@ def buildElement(resp: Response) -> PrimeLSSElement:
         new_url=newURL,
         original_url_status_code=originalStatusCode,
         action=action,
+        repo_status=gitPingStatus,
     )
 
 
-def concurrentEvaluation(streamIterable: map) -> None:
-    with Spinner("Resolving GitHub URLs...") as spinner:
-
-        def _helper(url: str) -> None:
-            resp: Response = getURL(url)
-            p: PrimeLSSElement = buildElement(resp)
-            jsonObjects.append(p.to_dict())
-            spinner.next()
-
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            url: str
-            for url in streamIterable:
-                executor.submit(_helper, url)
-
-
 def main() -> None:
-    outputFilePath: PurePath = PurePath("output.json")
+    outputFilePath: PurePath = PurePath("mergedURLs.json")
 
     stream: TextIOWrapper = open(file="test.txt", mode="r", buffering=1)
     streamIterable = map(str.strip, iter(stream.readline, ""))
 
-    with Spinner("Resolving GitHub URLs...") as spinner:
+    with Spinner("Resolving GitHub URLs... ") as spinner:
         url: str
         for url in streamIterable:
+            spinner.message = f"Resolving {url}... "
+            spinner.update()
+
             resp: Response = getURL(url)
-            p: PrimeLSSElement = buildElement(resp)
+            gitStatus: int = gitPing(url)
+            p: PrimeLSSElement = buildElement(resp, gitPingStatus=gitStatus)
             jsonObjects.append(p.to_dict())
             spinner.next()
 

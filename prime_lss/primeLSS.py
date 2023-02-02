@@ -1,5 +1,3 @@
-# Code generated from https://app.quicktype.io/#l=schema
-
 from dataclasses import dataclass
 from typing import Any, Callable, List, Type, TypeVar, cast
 
@@ -28,37 +26,40 @@ def to_class(c: Type[T], x: Any) -> dict:
 
 @dataclass
 class PrimeLSSElement:
-    id: int
-    original_url: str
-    new_url: str
-    original_url_status_code: int
     action: int
+    id: int
+    new_url: str
+    original_url: str
+    original_url_status_code: int
+    repo_status: int
 
     @staticmethod
     def from_dict(obj: Any) -> "PrimeLSSElement":
         assert isinstance(obj, dict)
-        id = from_int(obj.get("id"))
-        original_url = from_str(obj.get("OriginalURL"))
-        new_url = from_str(obj.get("NewURL"))
-        original_url_status_code = from_int(obj.get("OriginalURLStatusCode"))
         action = from_int(obj.get("Action"))
+        id = from_int(obj.get("id"))
+        new_url = from_str(obj.get("NewURL"))
+        original_url = from_str(obj.get("OriginalURL"))
+        original_url_status_code = from_int(obj.get("OriginalURLStatusCode"))
+        repo_status = from_int(obj.get("RepoStatus"))
         return PrimeLSSElement(
-            id, original_url, new_url, original_url_status_code, action
+            action, id, new_url, original_url, original_url_status_code, repo_status
         )
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["id"] = from_int(self.id)
-        result["OriginalURL"] = from_str(self.original_url)
-        result["NewURL"] = from_str(self.new_url)
-        result["OriginalURLStatusCode"] = from_int(self.original_url_status_code)
         result["Action"] = from_int(self.action)
+        result["id"] = from_int(self.id)
+        result["NewURL"] = from_str(self.new_url)
+        result["OriginalURL"] = from_str(self.original_url)
+        result["OriginalURLStatusCode"] = from_int(self.original_url_status_code)
+        result["RepoStatus"] = from_int(self.repo_status)
         return result
 
 
-def prime_lss_from_dict(s: Any) -> List[PrimeLSSElement]:
+def coordinate_from_dict(s: Any) -> List[PrimeLSSElement]:
     return from_list(PrimeLSSElement.from_dict, s)
 
 
-def prime_lss_to_dict(x: List[PrimeLSSElement]) -> Any:
+def coordinate_to_dict(x: List[PrimeLSSElement]) -> Any:
     return from_list(lambda x: to_class(PrimeLSSElement, x), x)

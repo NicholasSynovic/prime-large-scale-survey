@@ -23,6 +23,9 @@
                 },
                 "Action": {
                     "type": "integer"
+                },
+                "RepoStatus": {
+                    "type": "integer"
                 }
             },
             "required": [
@@ -30,7 +33,9 @@
                 "NewURL",
                 "OriginalURL",
                 "OriginalURLStatusCode",
-                "id"
+                "id",
+                "RepoStatus"
+
             ],
             "title": "PrimeLSSElement"
         }
