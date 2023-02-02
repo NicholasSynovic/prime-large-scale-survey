@@ -1,12 +1,13 @@
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
+from io import TextIOWrapper
+from json import dump
 from time import sleep
 from typing import List
 
 import requests
+from primeLSS import PrimeLSSElement
 from progress.spinner import Spinner
 from requests import Response
-
-from prime_lss.primeLSS import PrimeLSSElement
 
 jsonObjects: List[dict] = []
 
@@ -51,18 +52,29 @@ def buildElement(resp: Response) -> PrimeLSSElement:
     )
 
 
+def concurrentEvaluation(streamIterable: map) -> None:
+    with Spinner("Resolving GitHub URLs...") as spinner:
+
+        def _helper(url: str) -> None:
+            resp: Response = getURL(url)
+            p: PrimeLSSElement = buildElement(resp)
+            jsonObjects.append(p.to_dict())
+            spinner.next()
+
+        with ThreadPoolExecutor() as executor:
+            executor.map(_helper, streamIterable)
+
+
 def main() -> None:
-    with open("largeurls.txt", "r") as stream:
-        lines = stream.readlines()
 
-    urls = [line.strip() for line in lines]
+    stream: TextIOWrapper = open(file="mergedURLs.txt", mode="r", buffering=1)
+    streamIterable = map(str.strip, iter(stream.readline, ""))
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(fetch_url, url) for url in urls]
+    concurrentEvaluation(streamIterable=streamIterable)
 
-        concurrent.futures.wait(futures)
-
-    fetch_url(url="https://github.com/SoftwareSystemsLaboratory/clime")
+    with open(file="outputURLs.json", mode="w") as json:
+        dump(obj=jsonObjects, fp=json)
+        json.close()
 
 
 if __name__ == "__main__":
