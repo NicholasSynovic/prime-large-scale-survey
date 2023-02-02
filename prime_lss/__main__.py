@@ -1,6 +1,7 @@
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from io import TextIOWrapper
 from json import dump
+from pathlib import PurePath
 from time import sleep
 from typing import List
 
@@ -61,18 +62,28 @@ def concurrentEvaluation(streamIterable: map) -> None:
             jsonObjects.append(p.to_dict())
             spinner.next()
 
-        with ThreadPoolExecutor() as executor:
-            executor.map(_helper, streamIterable)
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            url: str
+            for url in streamIterable:
+                executor.submit(_helper, url)
 
 
 def main() -> None:
+    outputFilePath: PurePath = PurePath("output.json")
 
-    stream: TextIOWrapper = open(file="mergedURLs.txt", mode="r", buffering=1)
+    stream: TextIOWrapper = open(file="test.txt", mode="r", buffering=1)
     streamIterable = map(str.strip, iter(stream.readline, ""))
 
-    concurrentEvaluation(streamIterable=streamIterable)
+    with Spinner("Resolving GitHub URLs...") as spinner:
+        url: str
+        for url in streamIterable:
+            resp: Response = getURL(url)
+            p: PrimeLSSElement = buildElement(resp)
+            jsonObjects.append(p.to_dict())
+            spinner.next()
 
-    with open(file="outputURLs.json", mode="w") as json:
+    print(f"Saving file to {outputFilePath}...")
+    with open(file=outputFilePath, mode="w") as json:
         dump(obj=jsonObjects, fp=json)
         json.close()
 

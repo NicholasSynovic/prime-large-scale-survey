@@ -19,7 +19,7 @@
                     "type": "string"
                 },
                 "OriginalURLStatusCode": {
-                    "type": "string"
+                    "type": "integer"
                 },
                 "Action": {
                     "type": "integer"

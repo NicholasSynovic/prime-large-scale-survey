@@ -31,7 +31,7 @@ class PrimeLSSElement:
     id: int
     original_url: str
     new_url: str
-    original_url_status_code: str
+    original_url_status_code: int
     action: int
 
     @staticmethod
@@ -40,7 +40,7 @@ class PrimeLSSElement:
         id = from_int(obj.get("id"))
         original_url = from_str(obj.get("OriginalURL"))
         new_url = from_str(obj.get("NewURL"))
-        original_url_status_code = from_str(obj.get("OriginalURLStatusCode"))
+        original_url_status_code = from_int(obj.get("OriginalURLStatusCode"))
         action = from_int(obj.get("Action"))
         return PrimeLSSElement(
             id, original_url, new_url, original_url_status_code, action
@@ -51,7 +51,7 @@ class PrimeLSSElement:
         result["id"] = from_int(self.id)
         result["OriginalURL"] = from_str(self.original_url)
         result["NewURL"] = from_str(self.new_url)
-        result["OriginalURLStatusCode"] = from_str(self.original_url_status_code)
+        result["OriginalURLStatusCode"] = from_int(self.original_url_status_code)
         result["Action"] = from_int(self.action)
         return result
 
