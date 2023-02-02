@@ -1,11 +1,12 @@
+import concurrent.futures
+from io import TextIOWrapper
+from itertools import islice
+from time import sleep
+
 import requests
 from requests import Response
-from itertools import islice
-from io import TextIOWrapper
-import concurrent.futures
 
-from primeLSS import PrimeLSSElement
-from time import sleep
+from prime_lss.primeLSS import PrimeLSSElement
 
 # def url_stream():
 #     index = 0
@@ -15,7 +16,7 @@ from time import sleep
 #             for line in lines:
 #                 index += 1
 #                 #print(line)
-#                 print(f"Total count is {index}")    
+#                 print(f"Total count is {index}")
 #             if not lines:
 #                 break
 
@@ -25,8 +26,6 @@ from time import sleep
 #         print(r)
 
 # url_stream()
-
-
 
 
 # def main()  ->  None:
@@ -45,7 +44,7 @@ from time import sleep
 #     with open("largeurls.txt", "r") as stream:
 #         lines = stream.readlines()
 
-    
+
 #     for line in lines:
 #         url = line.strip()
 #         r = requests.get(url)
@@ -56,6 +55,7 @@ from time import sleep
 
 
 jsonObjects: list[dict] = []
+
 
 def fetch_url(url: str) -> None:
     r: Response = requests.get(url, allow_redirects=False)
@@ -69,14 +69,20 @@ def fetch_url(url: str) -> None:
 
     if newURL == None:
         newURL = url
-    
 
-    p: PrimeLSSElement = PrimeLSSElement(id=hash(url), original_url=url, new_url=newURL, original_url_status_code=str(r.status_code), action=0)
+    p: PrimeLSSElement = PrimeLSSElement(
+        id=hash(url),
+        original_url=url,
+        new_url=newURL,
+        original_url_status_code=str(r.status_code),
+        action=0,
+    )
 
     jsonObjects.append(p.to_dict())
 
-    #print(r.status_code)
+    # print(r.status_code)
     print(p.to_dict())
+
 
 def main() -> None:
     with open("largeurls.txt", "r") as stream:
@@ -91,6 +97,6 @@ def main() -> None:
 
     fetch_url(url="https://github.com/SoftwareSystemsLaboratory/clime")
 
+
 if __name__ == "__main__":
     main()
-
