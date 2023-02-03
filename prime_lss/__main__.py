@@ -1,4 +1,5 @@
 import subprocess
+from argparse import ArgumentParser, Namespace
 from concurrent.futures import ThreadPoolExecutor
 from io import TextIOWrapper
 from json import dump
@@ -13,6 +14,27 @@ from primeLSS import PrimeLSSElement
 from requests import Response
 
 jsonObjects: List[dict] = []
+
+
+def parseArgs() -> Namespace:
+    parser: ArgumentParser = ArgumentParser(
+        prog="PRIME Large Scale Survey URL Resolver",
+        usage="A tool to resolve GitHub URLs prior to cloning repositories",
+        epilog="This software is dependent upon git being installed",
+    )
+    parser.add_argument(
+        "-i",
+        "--input",
+        required=True,
+        help="Input .txt file containing URLs to resolve",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        required=True,
+        help="Output .json file for where to store data",
+    )
+    return parser.parse_args()
 
 
 def getURL(url: str) -> Response:
@@ -87,9 +109,12 @@ def concurrentResolve(streamIter: map) -> None:
 
 
 def main() -> None:
-    outputFilePath: PurePath = PurePath("resolvedURLs.json")
+    args: Namespace = parseArgs()
 
-    stream: TextIOWrapper = open(file="test.txt", mode="r", buffering=1)
+    inputFilePath: PurePath = PurePath(args.input)
+    outputFilePath: PurePath = PurePath(args.output)
+
+    stream: TextIOWrapper = open(file=inputFilePath, mode="r", buffering=1)
     streamIterable: map = map(str.strip, iter(stream.readline, ""))
 
     start: int = time()
