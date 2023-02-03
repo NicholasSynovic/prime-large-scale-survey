@@ -7,4 +7,4 @@ mv x* splits/
 
 for i in $(ls splits); do mkdir json/$i; done
 
-for i in $(ls splits); do python __main__.py -i $i -o json/$1; done
+for i in $(ls splits); do python __main__.py -i splits/$i -o json/$i; done

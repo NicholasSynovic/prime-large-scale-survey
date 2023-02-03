@@ -133,7 +133,7 @@ def main() -> None:
 
     start: int = time()
 
-    concurrentResolve(streamIter=streamIterable)
+    concurrentResolve(streamIter=streamIterable, rootDir=outputFilePath)
 
     # url: str
     # for url in streamIterable:
