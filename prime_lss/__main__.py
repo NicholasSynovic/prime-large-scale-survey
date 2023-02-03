@@ -13,6 +13,7 @@ import requests
 from primeLSS import PrimeLSSElement
 from requests import Response
 
+sleepSecond: int = 60
 jsonObjects: List[dict] = []
 
 
@@ -42,7 +43,8 @@ def getURL(url: str) -> Response:
         resp: Response = requests.get(url=url, allow_redirects=False)
 
         if resp.status_code == 429:
-            sleep(secs=60)
+            sleep(secs=sleepSecond)
+            sleepSecond = sleepSecond**2
         else:
             break
 
