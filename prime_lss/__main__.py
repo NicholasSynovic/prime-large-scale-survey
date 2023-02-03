@@ -10,8 +10,9 @@ from typing import List
 from urllib.parse import ParseResult, urlparse
 
 import requests
-from primeLSS import PrimeLSSElement
 from requests import Response
+
+from prime_lss.primeLSS import PrimeLSSElement
 
 sleepSecond: int = 60
 jsonObjects: List[dict] = []
@@ -99,13 +100,14 @@ def buildElement(resp: Response) -> PrimeLSSElement:
     )
 
 
-def concurrentResolve(streamIter: map, outputFilePath: PurePath) -> None:
+def concurrentResolve(streamIter: map, rootDir: PurePath) -> None:
     def _helper(url: str) -> None:
         print(f"Resolving {url}...")
         resp: Response = getURL(url)
         p: PrimeLSSElement = buildElement(resp)
         # jsonObjects.append(p.to_dict())
-        writeToFile(outputFilePath, data=p.to_dict())
+        out: PurePath = PurePath(f"{rootDir}/{p.id}.json")
+        writeToFile(outputFilePath=out, data=p.to_dict())
 
     with ThreadPoolExecutor() as executor:
         executor.map(_helper, streamIter)
@@ -131,15 +133,15 @@ def main() -> None:
 
     start: int = time()
 
-    # concurrentResolve(streamIter=streamIterable)
+    concurrentResolve(streamIter=streamIterable)
 
-    url: str
-    for url in streamIterable:
-        print(f"Resolving {url}...")
-        resp: Response = getURL(url)
-        p: PrimeLSSElement = buildElement(resp)
-        jsonObjects.append(p.to_dict())
-        writeToFile(outputFilePath)
+    # url: str
+    # for url in streamIterable:
+    #     print(f"Resolving {url}...")
+    #     resp: Response = getURL(url)
+    #     p: PrimeLSSElement = buildElement(resp)
+    #     jsonObjects.append(p.to_dict())
+    #     writeToFile(outputFilePath)
 
     end: int = time()
 
