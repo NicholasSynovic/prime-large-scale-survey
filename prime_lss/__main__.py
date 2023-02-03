@@ -98,6 +98,7 @@ def main() -> None:
 
     # url: str
     # for url in streamIterable:
+    #     print(f"Resolving {url}...")
     #     resp: Response = getURL(url)
     #     p: PrimeLSSElement = buildElement(resp)
     #     jsonObjects.append(p.to_dict())
