@@ -1,14 +1,15 @@
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
 from io import TextIOWrapper
 from json import dump
 from pathlib import PurePath
-from time import sleep
+from subprocess import CompletedProcess
+from time import sleep, time
 from typing import List
 from urllib.parse import ParseResult, urlparse
 
 import requests
 from primeLSS import PrimeLSSElement
-from progress.spinner import MoonSpinner as Spinner
 from requests import Response
 
 jsonObjects: List[dict] = []
@@ -32,13 +33,16 @@ def gitPing(url: str) -> int:
 
     command: List[str] = ["git", "ls-remote", "--exit-code", "-h", gitURL]
 
-    return subprocess.run(
+    commandOutput: CompletedProcess[bytes] = subprocess.run(
         args=command, shell=False, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL
-    ).returncode
+    )
+
+    return commandOutput.returncode
 
 
-def buildElement(resp: Response, gitPingStatus: int) -> PrimeLSSElement:
+def buildElement(resp: Response) -> PrimeLSSElement:
     action: int
+    gitPingStatus: int
 
     originalURL: str = resp.url
     elementID: int = hash(originalURL)
@@ -51,10 +55,13 @@ def buildElement(resp: Response, gitPingStatus: int) -> PrimeLSSElement:
     match originalStatusCode:
         case 200:
             action = 0
+            gitPingStatus = gitPing(url=newURL)
         case 404:
             action = -1
+            gitPingStatus = -1
         case 301:
             action = 1
+            gitPingStatus = gitPing(url=newURL)
         case _:
             action = 2
 
@@ -68,28 +75,41 @@ def buildElement(resp: Response, gitPingStatus: int) -> PrimeLSSElement:
     )
 
 
+def concurrentResolve(streamIter: map) -> None:
+    def _helper(url: str) -> None:
+        print(f"Resolving {url}...")
+        resp: Response = getURL(url)
+        p: PrimeLSSElement = buildElement(resp)
+        jsonObjects.append(p.to_dict())
+
+    with ThreadPoolExecutor() as executor:
+        executor.map(_helper, streamIter)
+
+
 def main() -> None:
-    outputFilePath: PurePath = PurePath("mergedURLs.json")
+    outputFilePath: PurePath = PurePath("resolvedURLs.json")
 
     stream: TextIOWrapper = open(file="test.txt", mode="r", buffering=1)
-    streamIterable = map(str.strip, iter(stream.readline, ""))
+    streamIterable: map = map(str.strip, iter(stream.readline, ""))
 
-    with Spinner("Resolving GitHub URLs... ") as spinner:
-        url: str
-        for url in streamIterable:
-            spinner.message = f"Resolving {url}... "
-            spinner.update()
+    start: int = time()
 
-            resp: Response = getURL(url)
-            gitStatus: int = gitPing(url)
-            p: PrimeLSSElement = buildElement(resp, gitPingStatus=gitStatus)
-            jsonObjects.append(p.to_dict())
-            spinner.next()
+    concurrentResolve(streamIter=streamIterable)
+
+    # url: str
+    # for url in streamIterable:
+    #     resp: Response = getURL(url)
+    #     p: PrimeLSSElement = buildElement(resp)
+    #     jsonObjects.append(p.to_dict())
+
+    end: int = time()
 
     print(f"Saving file to {outputFilePath}...")
     with open(file=outputFilePath, mode="w") as json:
-        dump(obj=jsonObjects, fp=json)
+        dump(obj=jsonObjects, fp=json, indent=4)
         json.close()
+
+    print(f"{end - start} seconds")
 
 
 if __name__ == "__main__":
