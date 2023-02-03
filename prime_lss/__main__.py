@@ -99,20 +99,24 @@ def buildElement(resp: Response) -> PrimeLSSElement:
     )
 
 
-def concurrentResolve(streamIter: map) -> None:
+def concurrentResolve(streamIter: map, outputFilePath: PurePath) -> None:
     def _helper(url: str) -> None:
         print(f"Resolving {url}...")
         resp: Response = getURL(url)
         p: PrimeLSSElement = buildElement(resp)
-        jsonObjects.append(p.to_dict())
+        # jsonObjects.append(p.to_dict())
+        writeToFile(outputFilePath, data=p.to_dict())
 
     with ThreadPoolExecutor() as executor:
         executor.map(_helper, streamIter)
 
 
-def writeToFile(outputFilePath: PurePath) -> None:
+def writeToFile(outputFilePath: PurePath, data: dict | None = None) -> None:
     with open(file=outputFilePath, mode="w") as json:
-        dump(obj=jsonObjects, fp=json, indent=4)
+        if data is None:
+            dump(obj=jsonObjects, fp=json, indent=4)
+        else:
+            dump(obj=data, fp=json, indent=4)
         json.close()
 
 
