@@ -110,6 +110,12 @@ def concurrentResolve(streamIter: map) -> None:
         executor.map(_helper, streamIter)
 
 
+def writeToFile(outputFilePath: PurePath) -> None:
+    with open(file=outputFilePath, mode="w") as json:
+        dump(obj=jsonObjects, fp=json, indent=4)
+        json.close()
+
+
 def main() -> None:
     args: Namespace = parseArgs()
 
@@ -121,21 +127,17 @@ def main() -> None:
 
     start: int = time()
 
-    concurrentResolve(streamIter=streamIterable)
+    # concurrentResolve(streamIter=streamIterable)
 
-    # url: str
-    # for url in streamIterable:
-    #     print(f"Resolving {url}...")
-    #     resp: Response = getURL(url)
-    #     p: PrimeLSSElement = buildElement(resp)
-    #     jsonObjects.append(p.to_dict())
+    url: str
+    for url in streamIterable:
+        print(f"Resolving {url}...")
+        resp: Response = getURL(url)
+        p: PrimeLSSElement = buildElement(resp)
+        jsonObjects.append(p.to_dict())
+        writeToFile(outputFilePath)
 
     end: int = time()
-
-    print(f"Saving file to {outputFilePath}...")
-    with open(file=outputFilePath, mode="w") as json:
-        dump(obj=jsonObjects, fp=json, indent=4)
-        json.close()
 
     print(f"{end - start} seconds")
 
