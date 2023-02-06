@@ -21,3 +21,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 prime-lss-resolver = "prime_lss.resolver:main"
+prime-lss-rehash = "prime_lss.rehash:main"
