@@ -20,4 +20,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-prime-lss-resolve = "prime_lss.__main__:main"
+prime-lss-resolver = "prime_lss.resolver:main"
