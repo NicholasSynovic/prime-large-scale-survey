@@ -4,7 +4,6 @@ version = "0.1.0"
 description = ""
 authors = ["Nicholas M. Synovic <nicholas.synovic@gmail.com>"]
 readme = "README.md"
-packages = [{include = "prime_large_scale_survey"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"

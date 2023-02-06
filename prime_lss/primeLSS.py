@@ -27,7 +27,7 @@ def to_class(c: Type[T], x: Any) -> dict:
 @dataclass
 class PrimeLSSElement:
     action: int
-    id: int
+    id: str
     new_url: str
     original_url: str
     original_url_status_code: int
@@ -37,7 +37,7 @@ class PrimeLSSElement:
     def from_dict(obj: Any) -> "PrimeLSSElement":
         assert isinstance(obj, dict)
         action = from_int(obj.get("Action"))
-        id = from_int(obj.get("id"))
+        id = from_str(obj.get("id"))
         new_url = from_str(obj.get("NewURL"))
         original_url = from_str(obj.get("OriginalURL"))
         original_url_status_code = from_int(obj.get("OriginalURLStatusCode"))
@@ -49,7 +49,7 @@ class PrimeLSSElement:
     def to_dict(self) -> dict:
         result: dict = {}
         result["Action"] = from_int(self.action)
-        result["id"] = from_int(self.id)
+        result["id"] = from_str(self.id)
         result["NewURL"] = from_str(self.new_url)
         result["OriginalURL"] = from_str(self.original_url)
         result["OriginalURLStatusCode"] = from_int(self.original_url_status_code)

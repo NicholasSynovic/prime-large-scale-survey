@@ -1,6 +1,7 @@
 import subprocess
 from argparse import ArgumentParser, Namespace
 from concurrent.futures import ThreadPoolExecutor
+from hashlib import md5
 from io import TextIOWrapper
 from json import dump
 from pathlib import PurePath
@@ -70,7 +71,7 @@ def buildElement(resp: Response) -> PrimeLSSElement:
     gitPingStatus: int
 
     originalURL: str = resp.url
-    elementID: int = hash(originalURL)
+    elementID: str = md5(originalURL.encode("UTF-8")).hexdigest()
     originalStatusCode: int = resp.status_code
     newURL: str | None = resp.headers.get("Location")
 
@@ -133,15 +134,15 @@ def main() -> None:
 
     start: int = time()
 
-    concurrentResolve(streamIter=streamIterable, rootDir=outputFilePath)
+    # concurrentResolve(streamIter=streamIterable, rootDir=outputFilePath)
 
-    # url: str
-    # for url in streamIterable:
-    #     print(f"Resolving {url}...")
-    #     resp: Response = getURL(url)
-    #     p: PrimeLSSElement = buildElement(resp)
-    #     jsonObjects.append(p.to_dict())
-    #     writeToFile(outputFilePath)
+    url: str
+    for url in streamIterable:
+        print(f"Resolving {url}...")
+        resp: Response = getURL(url)
+        p: PrimeLSSElement = buildElement(resp)
+        jsonObjects.append(p.to_dict())
+        writeToFile(outputFilePath)
 
     end: int = time()
 
