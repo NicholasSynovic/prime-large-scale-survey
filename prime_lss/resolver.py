@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from hashlib import md5
 from io import TextIOWrapper
 from json import dump
+from os import makedirs
 from pathlib import PurePath
 from subprocess import CompletedProcess
 from time import sleep, time
@@ -16,7 +17,6 @@ from requests import Response
 from prime_lss.primeLSS import PrimeLSSElement
 
 sleepSecond: int = 60
-jsonObjects: List[dict] = []
 
 
 def parseArgs() -> Namespace:
@@ -32,10 +32,10 @@ def parseArgs() -> Namespace:
         help="Input .txt file containing URLs to resolve",
     )
     parser.add_argument(
-        "-o",
-        "--output",
+        "-d",
+        "--directory",
         required=True,
-        help="Output .json file for where to store data",
+        help="Directory to store output .json file",
     )
     return parser.parse_args()
 
@@ -44,11 +44,11 @@ def getURL(url: str) -> Response:
     while True:
         resp: Response = requests.get(url=url, allow_redirects=False)
 
-        if resp.status_code == 429:
+        if resp.status_code == 200 or 301 or 404:
+            break
+        else:
             sleep(secs=sleepSecond)
             sleepSecond = sleepSecond**2
-        else:
-            break
 
     return resp
 
@@ -101,25 +101,22 @@ def buildElement(resp: Response) -> PrimeLSSElement:
     )
 
 
-def concurrentResolve(streamIter: map, rootDir: PurePath) -> None:
-    def _helper(url: str) -> None:
-        print(f"Resolving {url}...")
-        resp: Response = getURL(url)
-        p: PrimeLSSElement = buildElement(resp)
-        # jsonObjects.append(p.to_dict())
-        out: PurePath = PurePath(f"{rootDir}/{p.id}.json")
-        writeToFile(outputFilePath=out, data=p.to_dict())
+# def concurrentResolve(streamIter: map, rootDir: PurePath) -> None:
+#     def _helper(url: str) -> None:
+#         print(f"Resolving {url} ...")
+#         resp: Response = getURL(url)
+#         p: PrimeLSSElement = buildElement(resp)
+#         # jsonObjects.append(p.to_dict())
+#         out: PurePath = PurePath(f"{rootDir}/{p.id}.json")
+#         writeToFile(outputFilePath=out, data=p.to_dict())
 
-    with ThreadPoolExecutor() as executor:
-        executor.map(_helper, streamIter)
+#     with ThreadPoolExecutor() as executor:
+#         executor.map(_helper, streamIter)
 
 
-def writeToFile(outputFilePath: PurePath, data: dict | None = None) -> None:
+def writeToFile(outputFilePath: PurePath, data: dict) -> None:
     with open(file=outputFilePath, mode="w") as json:
-        if data is None:
-            dump(obj=jsonObjects, fp=json, indent=4)
-        else:
-            dump(obj=data, fp=json, indent=4)
+        dump(obj=data, fp=json, indent=4)
         json.close()
 
 
@@ -127,26 +124,21 @@ def main() -> None:
     args: Namespace = parseArgs()
 
     inputFilePath: PurePath = PurePath(args.input)
-    outputFilePath: PurePath = PurePath(args.output)
+    outputDirectory: PurePath = PurePath(args.directory)
 
     stream: TextIOWrapper = open(file=inputFilePath, mode="r", buffering=1)
     streamIterable: map = map(str.strip, iter(stream.readline, ""))
-
-    start: int = time()
 
     # concurrentResolve(streamIter=streamIterable, rootDir=outputFilePath)
 
     url: str
     for url in streamIterable:
-        print(f"Resolving {url}...")
+        print(f"Resolving {url} ...")
         resp: Response = getURL(url)
         p: PrimeLSSElement = buildElement(resp)
-        jsonObjects.append(p.to_dict())
-        writeToFile(outputFilePath)
-
-    end: int = time()
-
-    print(f"{end - start} seconds")
+        pDict: dict = p.to_dict()
+        outputFilePath: PurePath = PurePath(f"{outputDirectory}/{pDict['id']}.json")
+        writeToFile(outputFilePath, data=pDict)
 
 
 if __name__ == "__main__":
