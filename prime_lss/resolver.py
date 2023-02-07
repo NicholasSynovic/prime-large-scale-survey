@@ -5,6 +5,7 @@ from hashlib import md5
 from io import TextIOWrapper
 from json import dump
 from os import makedirs
+from os.path import isfile
 from pathlib import PurePath
 from subprocess import CompletedProcess
 from time import sleep, time
@@ -134,6 +135,13 @@ def main() -> None:
 
     url: str
     for url in streamIterable:
+        testFileName: PurePath = PurePath(
+            f"{outputDirectory}/{url.encode('UTF-8').hexdigest()}.json"
+        )
+
+        if f'{md5(url.encode("UTF-8")).hexdigest()}.json' == testFileName:
+            continue
+
         print(f"Resolving {url} ...")
         resp: Response = getURL(url)
         p: PrimeLSSElement = buildElement(resp)
