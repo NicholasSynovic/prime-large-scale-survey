@@ -41,8 +41,9 @@ def parseArgs() -> Namespace:
 
 
 def getURL(url: str) -> Response:
+    headers: dict = {"User-Agent": "PRIME Large Scale Survey"}
     while True:
-        resp: Response = requests.get(url=url, allow_redirects=False)
+        resp: Response = requests.get(url=url, allow_redirects=False, headers=headers)
 
         if resp.status_code == 200 or 301 or 404:
             break
