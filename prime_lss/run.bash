@@ -7,4 +7,4 @@ mv x* splits/
 
 for i in $(ls splits); do mkdir json/$i; done
 
-for i in $(ls splits); do python resolver.py -i splits/$i -d json; done
+for i in $(ls splits); do python3 resolver.py -i splits/$i -d json; done
