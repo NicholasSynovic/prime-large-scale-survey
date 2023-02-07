@@ -139,7 +139,7 @@ def main() -> None:
             f"{outputDirectory}/{url.encode('UTF-8').hexdigest()}.json"
         )
 
-        if f'{md5(url.encode("UTF-8")).hexdigest()}.json' == testFileName:
+        if isfile(testFileName):
             continue
 
         print(f"Resolving {url} ...")
