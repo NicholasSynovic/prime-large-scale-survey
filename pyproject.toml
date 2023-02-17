@@ -10,6 +10,8 @@ python = "^3.10"
 requests = "^2.28.2"
 progress = "^1.6"
 jsonschema = "^4.17.3"
+pylint = "^2.16.2"
+cardinality = "^0.1.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
